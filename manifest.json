@@ -1,29 +1,36 @@
-
 {
   "manifest_version": 3,
-  "name": "דיבוב יוטיוב בזמן אמת",
+  "name": "YouTube Video Dubber",
   "version": "1.0",
-  "description": "תוסף לדיבוב וידאו יוטיוב בזמן אמת - תמלול, תרגום והקראה בעברית",
+  "description": "דיבוב וידאו יוטיוב בזמן אמת",
+  
   "permissions": [
     "activeTab",
-    "storage"
+    "storage",
+    "scripting"
   ],
+  
   "host_permissions": [
-    "https://*.youtube.com/*",
-    "https://translate.googleapis.com/*"
+    "*://www.youtube.com/*",
+    "*://youtube.com/*"
   ],
+  
   "content_scripts": [
     {
-      "matches": ["https://*.youtube.com/*"],
-      "js": ["libs/translation.js", "content-script.js"],
+      "matches": ["*://www.youtube.com/*", "*://youtube.com/*"],
+      "js": ["content-script.js"],
       "run_at": "document_end"
     }
   ],
-  "background": {
-    "service_worker": "background.js"
-  },
+  
   "action": {
-    "default_popup": "popup/popup.html",
-    "default_title": "הגדרות דיבוב יוטיוב"
+    "default_popup": "popup.html",
+    "default_title": "הגדרות דיבוב"
+  },
+  
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
   }
 }
