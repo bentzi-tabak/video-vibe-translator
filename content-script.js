@@ -1,4 +1,3 @@
-
 // Content Script עיקרי לדיבוב וידאו יוטיוב
 class VideoDubber {
   constructor() {
@@ -137,6 +136,9 @@ class VideoDubber {
     if (!this.checkBrowserSupport()) return;
 
     try {
+      // בקשת הרשאות מיקרופון
+      await navigator.mediaDevices.getUserMedia({ audio: true });
+      
       // הגדרת זיהוי קול
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       this.recognition = new SpeechRecognition();
@@ -148,13 +150,56 @@ class VideoDubber {
       // טיפול בתוצאות זיהוי הקול
       this.recognition.onresult = (event) => this.handleSpeechResult(event);
       
-      // טיפול בשגיאות
+      // טיפול משופר בשגיאות
       this.recognition.onerror = (event) => {
         console.error('שגיאה בזיהוי קול:', event.error);
-        if (event.error === 'no-speech') {
-          console.log('לא זוהה דיבור, ממשיך להאזין...');
-        } else {
-          this.showError(`שגיאה בזיהוי קול: ${event.error}`);
+        
+        switch(event.error) {
+          case 'no-speech':
+            console.log('לא זוהה דיבור, ממשיך להאזין...');
+            // ניסיון חוזר אוטומטי אחרי שגיאת no-speech
+            setTimeout(() => {
+              if (this.isActive && this.recognition) {
+                try {
+                  this.recognition.start();
+                } catch (e) {
+                  console.log('לא ניתן להפעיל מחדש:', e);
+                }
+              }
+            }, 1000);
+            break;
+          
+          case 'not-allowed':
+            this.showError('נדרשת הרשאה למיקרופון. אנא אפשר גישה למיקרופון ונסה שוב.');
+            this.stopDubbing();
+            break;
+            
+          case 'network':
+            this.showError('בעיית רשת. בדוק את החיבור לאינטרנט.');
+            break;
+            
+          case 'audio-capture':
+            this.showError('בעיה בקלטת אודיו. בדוק שהמיקרופון עובד.');
+            break;
+            
+          default:
+            this.showError(`שגיאה בזיהוי קול: ${event.error}`);
+        }
+      };
+      
+      // טיפול בסיום זיהוי קול
+      this.recognition.onend = () => {
+        console.log('זיהוי קול הסתיים');
+        // הפעלה מחדש אוטומטית אם עדיין פעיל
+        if (this.isActive) {
+          setTimeout(() => {
+            try {
+              this.recognition.start();
+              console.log('מפעיל זיהוי קול מחדש');
+            } catch (error) {
+              console.error('שגיאה בהפעלה מחדש:', error);
+            }
+          }, 500);
         }
       };
 
@@ -169,7 +214,11 @@ class VideoDubber {
 
     } catch (error) {
       console.error('שגיאה בהפעלת דיבוב:', error);
-      this.showError('שגיאה בהפעלת הדיבוב');
+      if (error.name === 'NotAllowedError') {
+        this.showError('נדרשת הרשאה למיקרופון. אנא אפשר גישה למיקרופון בהגדרות הדפדפן.');
+      } else {
+        this.showError('שגיאה בהפעלת הדיבוב: ' + error.message);
+      }
     }
   }
 
