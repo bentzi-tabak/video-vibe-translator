@@ -1,0 +1,162 @@
+
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>הגדרות דיבוב יוטיוב</title>
+    <style>
+        body {
+            width: 320px;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            direction: rtl;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin: 0;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            padding-bottom: 15px;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        .header p {
+            margin: 8px 0 0 0;
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        
+        .setting-group {
+            margin-bottom: 20px;
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .setting-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        select, button {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            background: rgba(255,255,255,0.9);
+            color: #333;
+            direction: rtl;
+        }
+        
+        select:focus, button:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(255,255,255,0.5);
+        }
+        
+        .save-button {
+            background: linear-gradient(45deg, #00aa00, #00cc00);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+        
+        .save-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .status {
+            text-align: center;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 15px;
+            font-size: 13px;
+            display: none;
+        }
+        
+        .status.success {
+            background: rgba(0,200,0,0.2);
+            border: 1px solid rgba(0,200,0,0.3);
+        }
+        
+        .status.error {
+            background: rgba(200,0,0,0.2);
+            border: 1px solid rgba(200,0,0,0.3);
+        }
+        
+        .info-box {
+            background: rgba(255,255,255,0.05);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            line-height: 1.4;
+            margin-top: 15px;
+        }
+        
+        .info-box strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎤 דיבוב יוטיוב</h1>
+        <p>הגדרות תמלול ותרגום</p>
+    </div>
+
+    <div class="setting-group">
+        <label for="target-language">שפת יעד לתרגום:</label>
+        <select id="target-language">
+            <option value="he">עברית</option>
+            <option value="ar">ערבית</option>
+            <option value="es">ספרדית</option>
+            <option value="fr">צרפתית</option>
+            <option value="de">גרמנית</option>
+            <option value="it">איטלקית</option>
+            <option value="pt">פורטוגזית</option>
+            <option value="ru">רוסית</option>
+            <option value="ja">יפנית</option>
+            <option value="ko">קוריאנית</option>
+            <option value="zh">סינית</option>
+        </select>
+    </div>
+
+    <div class="setting-group">
+        <label for="tts-engine">מנוע הקראת טקסט:</label>
+        <select id="tts-engine">
+            <option value="web">Web Speech API (מובנה)</option>
+            <option value="responsive" disabled>ResponsiveVoice (בקרוב)</option>
+        </select>
+    </div>
+
+    <button class="save-button" id="save-settings">💾 שמור הגדרות</button>
+
+    <div class="status" id="status"></div>
+
+    <div class="info-box">
+        <strong>איך זה עובד:</strong>
+        1. לחץ על כפתור "הפעל דיבוב" ביוטיוב<br>
+        2. התוסף יתמלל את האודיו באנגלית<br>
+        3. יתרגם לשפה שבחרת<br>
+        4. יקריא בקול בשפת היעד
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>
