@@ -21,10 +21,5 @@
       "js": ["content-script.js"],
       "run_at": "document_end"
     }
-  ],
-  
-  "action": {
-    "default_popup": "popup.html",
-    "default_title": "הגדרות דיבוב"
-  }
+  ]
 }
