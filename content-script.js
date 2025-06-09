@@ -1,9 +1,11 @@
+
 // Content Script עיקרי לדיבוב וידאו יוטיוב
 class VideoDubber {
   constructor() {
     this.videoElement = null;
     this.recognition = null;
     this.isActive = false;
+    this.isRecognitionRunning = false;
     this.dubbingButton = null;
     this.settings = {
       targetLanguage: 'he',
@@ -134,6 +136,7 @@ class VideoDubber {
     console.log('מתחיל דיבוב');
     
     if (!this.checkBrowserSupport()) return;
+    if (this.isActive) return; // מניעת הפעלה כפולה
 
     try {
       // בקשת הרשאות מיקרופון
@@ -150,23 +153,21 @@ class VideoDubber {
       // טיפול בתוצאות זיהוי הקול
       this.recognition.onresult = (event) => this.handleSpeechResult(event);
       
+      // טיפול בהתחלת זיהוי קול
+      this.recognition.onstart = () => {
+        console.log('זיהוי קול התחיל');
+        this.isRecognitionRunning = true;
+      };
+      
       // טיפול משופר בשגיאות
       this.recognition.onerror = (event) => {
         console.error('שגיאה בזיהוי קול:', event.error);
+        this.isRecognitionRunning = false;
         
         switch(event.error) {
           case 'no-speech':
             console.log('לא זוהה דיבור, ממשיך להאזין...');
-            // ניסיון חוזר אוטומטי אחרי שגיאת no-speech
-            setTimeout(() => {
-              if (this.isActive && this.recognition) {
-                try {
-                  this.recognition.start();
-                } catch (e) {
-                  console.log('לא ניתן להפעיל מחדש:', e);
-                }
-              }
-            }, 1000);
+            // לא צריך הפעלה מחדש - onend יטפל בזה
             break;
           
           case 'not-allowed':
@@ -182,6 +183,10 @@ class VideoDubber {
             this.showError('בעיה בקלטת אודיו. בדוק שהמיקרופון עובד.');
             break;
             
+          case 'aborted':
+            console.log('זיהוי קול בוטל');
+            break;
+            
           default:
             this.showError(`שגיאה בזיהוי קול: ${event.error}`);
         }
@@ -190,14 +195,21 @@ class VideoDubber {
       // טיפול בסיום זיהוי קול
       this.recognition.onend = () => {
         console.log('זיהוי קול הסתיים');
-        // הפעלה מחדש אוטומטית אם עדיין פעיל
-        if (this.isActive) {
+        this.isRecognitionRunning = false;
+        
+        // הפעלה מחדש אוטומטית אם עדיין פעיל ולא רץ כבר
+        if (this.isActive && !this.isRecognitionRunning) {
           setTimeout(() => {
-            try {
-              this.recognition.start();
-              console.log('מפעיל זיהוי קול מחדש');
-            } catch (error) {
-              console.error('שגיאה בהפעלה מחדש:', error);
+            if (this.isActive && this.recognition && !this.isRecognitionRunning) {
+              try {
+                this.recognition.start();
+                console.log('מפעיל זיהוי קול מחדש');
+              } catch (error) {
+                console.error('שגיאה בהפעלה מחדש:', error);
+                if (error.name === 'InvalidStateError') {
+                  console.log('זיהוי קול כבר רץ');
+                }
+              }
             }
           }, 500);
         }
@@ -226,16 +238,23 @@ class VideoDubber {
   stopDubbing() {
     console.log('עוצר דיבוב');
     
+    // עדכון מצב קודם כדי למנוע הפעלה מחדש
+    this.isActive = false;
+    this.isRecognitionRunning = false;
+    
     if (this.recognition) {
-      this.recognition.stop();
+      try {
+        this.recognition.stop();
+      } catch (error) {
+        console.log('שגיאה בעצירת זיהוי קול:', error);
+      }
       this.recognition = null;
     }
     
     // עצירת הקראה נוכחית
     speechSynthesis.cancel();
     
-    // עדכון מצב
-    this.isActive = false;
+    // עדכון כפתור
     this.updateButtonState();
     
     console.log('דיבוב נעצר');
